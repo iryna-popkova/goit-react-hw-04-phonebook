@@ -15,10 +15,6 @@ export const App = () => {
   const [contacts, addContacts] = useState(JSON.parse(savedContacts) || []);
   const [filters, addFilters] = useState('');
 
-  useEffect(() => {
-    window.localStorage.setItem(contactsData, JSON.stringify(contacts));
-  }, [contacts]);
-
   const onAddContact = newContact => {
     if (contacts.some(contact => contact.name === newContact.name)) {
       Notify.failure(`${newContact.name} already in phonebook!`);
@@ -38,16 +34,19 @@ export const App = () => {
     addFilters({ filter: event.currentTarget.value });
   };
 
-  const getFilteredContacts = () => {
+  function getFilteredContacts() {
+    const normFilter = (filters.filter || '').toLowerCase();
+
     return contacts.filter(contact => {
       const contactName = contact.name;
       const contactNumber = contact.number;
+
       return (
-        contactName.toLowerCase().includes(filters.toLowerCase()) ||
-        contactNumber.includes(filters)
+        contactName.toLowerCase().includes(normFilter) ||
+        contactNumber.includes(normFilter)
       );
     });
-  };
+  }
 
   const resetFilters = () => {
     addContacts({
@@ -63,7 +62,9 @@ export const App = () => {
     );
   };
 
-  const filteredContacts = getFilteredContacts();
+  useEffect(() => {
+    window.localStorage.setItem(contactsData, JSON.stringify(contacts));
+  }, [contacts]);
 
   return (
     <Container>
@@ -76,9 +77,9 @@ export const App = () => {
         <SectionTitle>Contacts</SectionTitle>
         {contacts.length !== 0 ? (
           <>
-            <Filter value={filters} onChange={changeFilter} />
+            <Filter value={filters.filter} onChange={changeFilter} />
             <ContactList
-              contacts={filteredContacts}
+              contacts={getFilteredContacts}
               onDelete={removeContact}
               onReset={resetFilters}
             />
